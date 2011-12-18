@@ -1,0 +1,17 @@
+Chrome extension that checks myth weaver every 15 minutes for threads with new posts. 
+It displays the number of threads on the icon and a chrome notification.
+
+
+In the extensions settings you need to set the checkpage_url to the Main ThreadGroup.
+In mythweaver you need to add all subtheadgroups to display in the Main ThreadGroup (edit link under the link in the left menu. Can only be done by leaders of the game).
+
+If you click the icon a tab opens with on of the pages:
+ 1. If there is a thread with unread posts: The first new post of the last updated thread.
+ 2. If you clicked to a thread before, go to that same location.
+ 3. The Main ThreadGroup.
+
+since v0.3.0
+Also changes the count when a thread is loaded in chrome through other means.
+
+
+ 

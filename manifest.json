@@ -1,0 +1,27 @@
+{
+  "name": "Myth Weavers Notifier",
+  "version": "0.3.0",
+  "description": "Checks myth weavers for new messages.",
+  "browser_action": {
+    "default_icon": "icon_16.png"
+  },
+  "icons": {
+    "16": "icon_16.png",
+    "128": "icon_128.png"
+  },
+  "background_page": "background.html",
+  "content_scripts": [
+      {
+        "matches": ["http://www.myth-weavers.com/showthread.php*"],
+        "js": ["jquery-1.7.1.js", "thread_inject.js"]
+      }
+    ],
+  "options_page": "options.html",
+  "permissions": [
+    "http://www.myth-weavers.com/",
+    "notifications",
+    "tabs"
+  ],
+  
+  "update_url": "http://dl.dropbox.com/u/1786709/mythweavers_new.xml"
+}

@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"> 
+
+<html>
+  <head>
+    <script type="text/javascript" src="jquery-1.7.1.js"></script>
+    <script type="text/javascript" src="defaults.js"></script>
+    <script type="text/javascript">
+(function() {
+  var badge_color = {color: [0, 180, 0, 255]};
+  var badge_error_color = {color: [180, 0, 0, 255]};
+  
+  var threads_new = []; // the threads with new posts [[relative-url, title], ..]
+  var base_url = "http://www.myth-weavers.com/";
+  var last_url = ''; // url that was used in last click, used to go there again of no new threads.
+  load_defaults();
+  
+  // start "check for new threads"-loop in 10s to minimize slowing of chrome startup.
+  setTimeout(check_new, 10 * 1000);
+
+  // on icon click, go to first new thread or to last thread we redirected to or to main thread group.
+  chrome.browserAction.onClicked.addListener(show_or_goto_page);
+  
+  // if thread is loaded it will send us a message that it is no longer new.
+  chrome.extension.onRequest.addListener(function(request, _sender, _sendResponse) {
+    if (request.no_longer_new)
+      no_longer_new(request.no_longer_new);
+  });
+
+  // deletes thread with thread_title from threads_new and calls display_new_count.
+  function no_longer_new(thread_title) {
+    console.log("no longer new: " + thread_title);
+    $.each(threads_new, function(i) {
+      if (thread_title == this[1])
+        threads_new.splice (i,1);
+    });
+    display_new_count();
+  }
+  
+  // on icon click, go to first new thread or to last thread we redirected to or to main thread group.
+  function show_or_goto_page(evt) {
+    var url = threads_new.length ? base_url + threads_new[0] : last_url || localStorage['checkpage_url'];
+    last_url = url;
+    // alert(url + evt.metaKey);
+    // if (evt.metaKey || evt.ctrlKey)
+      chrome.tabs.create({url: url});
+    // else
+    //   chrome.tabs.update(null, {url: url});
+  }
+  
+  // main loop. Schedules next call first, then calls get_page.
+  function check_new() {
+    setTimeout(check_new, localStorage['check_interval_m'] * 60*1000);
+    get_page();
+  }
+  
+  // fetches the main thread-group page and calls parse_page.
+  // on errors, displays red X in BrowserAction icon.
+  function get_page() {
+    if (!localStorage['checkpage_url']) {
+      chrome.tabs.create({url: 'options.html'});
+      return;
+    }
+
+    $.ajax({
+      url: localStorage['checkpage_url'],
+      dataType: 'text',
+      success: function(html, _, xhr) {
+
+        parse_page(html);
+
+      },
+      error: function() {
+        threads_new = [];
+        chrome.browserAction.setBadgeBackgroundColor(badge_error_color);
+        chrome.browserAction.setBadgeText({ text: 'X'});
+      }
+    });
+  }
+  
+  // finds new threads on the page and push them to threads_new, then calls display_new_count and notify.
+  function parse_page(html) {
+    var threads_new_a = $('img[src$="firstnew.gif"]', html).parent();
+    var threads_new_old = threads_new;
+    threads_new = [];
+    threads_new_a.each(function(_, a){
+      threads_new.push([a.getAttribute('href'), $(a).next().text()]);
+    });
+    display_new_count();
+    notify(threads_new_old);
+  }
+  
+  // diffs threads_new with threads_new_old to find the threads_new we didn't know of before.
+  // shows chrome-notification for 4s for every one of those threads.
+  function notify(threads_new_old) {
+    $.each(threads_new, function(i,el) {
+      var new_new = $.grep(threads_new_old, function(e){return e[1] == el[1]});
+      if(!new_new.length) {
+        var notification = webkitNotifications.createNotification(
+          'icon_16.png',  // icon url - can be relative
+          'New message in MW thread',  // notification title
+          el[1]  // notification body text
+        );
+        notification.show();
+        setTimeout(function(){notification.cancel()}, 4 * 1000);
+      }
+    });
+  }
+  
+  // show the new thread count in the BrowserAction icon.
+  function display_new_count() {
+    var count = threads_new.length ? String(threads_new.length) : '';
+    chrome.browserAction.setBadgeBackgroundColor(badge_color);
+    chrome.browserAction.setBadgeText({ text: count });
+  }
+  
+})();
+    </script>
+  </head>
+  <body>
+    
+  </body>
+</html>

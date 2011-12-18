@@ -1,0 +1,28 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html>
+  <head>
+    <title>Myth Weavers Notifier - Options</title>
+    <script type="text/javascript" src="jquery-1.7.1.js"></script>
+    <script type="text/javascript" src="defaults.js"></script>
+    <script type="text/javascript">
+      $(function() {
+        $.each(DEFAULTS, function(k,v){
+          $('#' + k).val(localStorage[k] || v)
+        });
+
+        $('#save').click(function() {
+          $.each(DEFAULTS, function(k){
+            localStorage[k] = $('#' + k).val();
+          });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Myth Weavers Notifier - Options</h1>
+    Url of Main ThreadGroup: <input id="checkpage_url" size="100" /><br />
+    Check every <input id="check_interval_m" /> minutes. <br />
+    <input type="submit" value="save" id="save" />
+  </body>
+</html>
